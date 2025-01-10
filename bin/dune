@@ -1,0 +1,4 @@
+(executable
+ (public_name fp4_rnn)
+ (name main)
+ (libraries fp4_rnn nnlib str camomile))

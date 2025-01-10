@@ -1,0 +1,5 @@
+(library
+ (name nnlib)
+ (public_name fp4_rnn.nnlib)
+ (libraries base stdio owl-base)
+ (modules nn functions))

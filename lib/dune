@@ -1,0 +1,2 @@
+(library
+ (name fp4_rnn))
