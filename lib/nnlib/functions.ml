@@ -39,9 +39,10 @@ let softmax m =
 
 let softmax_ce_loss y_true y_pred =
   assert (List.length y_pred = List.length y_true);
+  let len = List.length y_true in
   let rec loop y_true y_pred total_loss =
     match y_true with
-    | [] -> total_loss
+    | [] -> total_loss /. (Float.of_int len)
     | y_true_hd :: _ ->
       let y_pred_hd = List.hd y_pred in
       let y_pred_hd_softmax = softmax y_pred_hd in

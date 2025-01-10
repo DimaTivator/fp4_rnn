@@ -36,7 +36,7 @@ let train ~model ~batches ~epochs ~lr =
   loop model 0
 ;;
 
-let words = List.map Case_Map.lowercase (Utils.read_words_from_file "test.txt")
+let words = List.map Case_Map.lowercase (Utils.read_words_from_file "data/names.txt")
 let letters = List.flatten (List.map Utils.split_into_letters words)
 let vocab = List.sort_uniq compare letters
 let vocab_size = List.length vocab
@@ -52,9 +52,9 @@ let tokens =
 ;;
 
 let float_tokens = List.map Float.of_int tokens
-let batch_size = 32
-let seq_length = 32
+let batch_size = 64
+let seq_length = 6
 let batches = Utils.get_batches float_tokens batch_size seq_length vocab_size
-let cfg : Nn.RNN.config = { vocab_size; hidden_size = 128 }
+let cfg : Nn.RNN.config = { vocab_size; hidden_size = 256 }
 let model = Nn.RNN.create cfg
-let model = train ~model ~batches ~epochs:100 ~lr:0.01
+let model = train ~model ~batches ~epochs:30 ~lr:0.1

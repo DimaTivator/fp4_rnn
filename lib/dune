@@ -1,2 +1,3 @@
 (library
- (name fp4_rnn))
+ (name fp4_rnn)
+ (libraries owl-base nnlib))
