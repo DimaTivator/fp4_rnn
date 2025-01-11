@@ -42,7 +42,7 @@ let softmax_ce_loss y_true y_pred =
   let len = List.length y_true in
   let rec loop y_true y_pred total_loss =
     match y_true with
-    | [] -> total_loss /. (Float.of_int len)
+    | [] -> total_loss /. Float.of_int len
     | y_true_hd :: _ ->
       let y_pred_hd = List.hd y_pred in
       let y_pred_hd_softmax = softmax y_pred_hd in
@@ -79,4 +79,27 @@ let one_hot_encode x num_classes =
     else matrix
   in
   loop one_hot_matrix 0
+;;
+
+let float_eq a b = abs_float (a -. b) < 0.0001
+
+let one_hot_max arr =
+  let max_value = N.max' arr in
+  let result = N.zeros (N.shape arr) in
+  let result = N.map (fun x -> if float_eq x max_value then 1.0 else 0.0) result in
+  result
+;;
+
+let argmax_1d arr =
+  let init_max = Float.neg_infinity in
+  let rec find_max idx current_max current_idx =
+    if idx = N.numel arr
+    then current_idx
+    else (
+      let value = N.get arr [| idx |] in
+      if value > current_max
+      then find_max (idx + 1) value idx
+      else find_max (idx + 1) current_max current_idx)
+  in
+  find_max 1 init_max 0
 ;;

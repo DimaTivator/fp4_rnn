@@ -1,6 +1,3 @@
-[@@@warning "-69"]
-[@@@warning "-27"]
-
 module N = Owl_base_dense_ndarray.D
 
 module Linear = struct
@@ -103,13 +100,27 @@ module RNN = struct
             Linear.forward rnn.hidden_to_hidden prev_hidden_state
           in
           let combined = N.add embedding hidden_to_hidden_output in
-          let scale = 1. /. Float.sqrt (Float.of_int rnn.cfg.hidden_size) in
-          N.tanh (N.mul_scalar combined scale)
+          N.tanh combined
         in
         let output_t = Linear.forward rnn.hidden_to_output hidden_state in
         process_sequence tl (hidden_state :: hidden_states) (output_t :: outputs)
     in
     process_sequence input hidden_states []
+  ;;
+
+  let generate rnn input length =
+    let rec loop rnn length output =
+      if length = 0
+      then output
+      else (
+        let model_output, _ = forward rnn output in
+        let output_t = List.hd (List.rev model_output) in
+        let output_t = Functions.softmax output_t in
+        let output_t = N.reshape output_t [| rnn.cfg.vocab_size |] in
+        let token = Float.of_int (Functions.argmax_1d output_t) in
+        loop rnn (length - 1) (output @ [ N.of_array [| token |] [| 1; 1 |] ]))
+    in
+    loop rnn length input
   ;;
 
   let create_linear_grad input_shape output_shape =
@@ -164,18 +175,17 @@ module RNN = struct
         let hidden_state_t = List.hd hidden_states in
         let prev_hidden_state = List.nth hidden_states 1 in
         let grad_output_t = List.hd grad_output in
-        let scale = 1. /. Float.sqrt (Float.of_int rnn.cfg.hidden_size) in
-        let grad_output_t = N.mul_scalar grad_output_t scale in
         let grad_hidden_to_output =
           Linear.backward rnn.hidden_to_output hidden_state_t grad_output_t
         in
         let grad_hidden_state =
-          N.add grad_hidden_state_next
-           (N.dot grad_output_t (N.transpose rnn.hidden_to_output.weight))
+          N.add
+            grad_hidden_state_next
+            (N.dot grad_output_t (N.transpose rnn.hidden_to_output.weight))
         in
         let grad_tanh = Functions.tanh_grad hidden_state_t in
         let grad_hidden_state_raw =
-          N.mul grad_hidden_state grad_tanh |> N.scalar_mul scale
+          N.mul grad_hidden_state grad_tanh
         in
         let grad_input_to_hidden =
           Linear.backward rnn.input_to_hidden input_t grad_hidden_state_raw
@@ -192,28 +202,33 @@ module RNN = struct
           ; hidden_to_output = add_grad grad.hidden_to_output grad_hidden_to_output
           }
         in
-        backprop tl grad (List.tl grad_output) grad_hidden_state_next (List.tl hidden_states)
+        backprop
+          tl
+          grad
+          (List.tl grad_output)
+          grad_hidden_state_next
+          (List.tl hidden_states)
     in
     backprop input grad grad_output grad_hidden_state_next hidden_states
   ;;
 
   let update (rnn : t) grad lr =
     let clip_grad g =
-      let threshold = 5.0 in
+      let threshold = 100. in
       let norm = N.l2norm' g in
-      if norm > threshold then
-        N.mul_scalar g (threshold /. norm)
-      else g
+      if norm > threshold then N.mul_scalar g (threshold /. norm) else g
     in
-    let clip_linear_grad (g: Linear.grad) =
+    let clip_linear_grad (g : Linear.grad) =
       { Linear.grad_input = clip_grad g.grad_input
       ; grad_weight = clip_grad g.grad_weight
-      ; grad_bias = clip_grad g.grad_bias }
+      ; grad_bias = clip_grad g.grad_bias
+      }
     in
     let grad =
       { input_to_hidden = clip_linear_grad grad.input_to_hidden
       ; hidden_to_hidden = clip_linear_grad grad.hidden_to_hidden
-      ; hidden_to_output = clip_linear_grad grad.hidden_to_output }
+      ; hidden_to_output = clip_linear_grad grad.hidden_to_output
+      }
     in
     let input_to_hidden = Linear.update rnn.input_to_hidden grad.input_to_hidden lr in
     let hidden_to_hidden = Linear.update rnn.hidden_to_hidden grad.hidden_to_hidden lr in

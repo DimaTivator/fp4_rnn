@@ -4,7 +4,8 @@ module Case_Map = Camomile.CaseMap.Make (Camomile.UTF8)
 module N = Owl_base_dense_ndarray.D
 
 let print_list lst = List.iter (fun x -> N.print x) lst
-let split_into_words str = Str.split (Str.regexp "[ \t\n\r,.;:!?()]+") str
+(* let split_into_words str = Str.split (Str.regexp "[\t\n\r,.;:!?()]+") str *)
+let split_into_words str = Str.split (Str.regexp "[\n]+") str
 
 let split_into_letters word =
   List.init (UTF8.length word) (fun i -> UChar.code (UTF8.get word i))
