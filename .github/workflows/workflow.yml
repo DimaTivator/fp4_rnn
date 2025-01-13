@@ -1,0 +1,37 @@
+name: Builds, tests & co
+
+on:
+  - push
+  - pull_request
+
+permissions: read-all
+
+jobs:
+  build-and-test:
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
+
+    strategy:
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tree
+        uses: actions/checkout@v4
+
+      - name: Set-up OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 4
+
+      # - run: opam install . --deps-only --with-test
+      - run: opam install base stdio alcotest qcheck-alcotest dune owl-base camomile str -y
+
+      - run: opam exec -- dune build
+      - run: opam exec -- dune runtest --verbose
+
+      - run: opam install zanuda.1.0.0 -y
+      - run: opam exec -- zanuda ./bin/*.ml ./test/*.ml 
