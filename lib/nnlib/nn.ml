@@ -211,15 +211,11 @@ module RNN = struct
   ;;
 
   let update (rnn : t) grad lr =
-    let clip_grad g =
-      let threshold = 100. in
-      let norm = N.l2norm' g in
-      if norm > threshold then N.mul_scalar g (threshold /. norm) else g
-    in
+    let threshold = 30. in
     let clip_linear_grad (g : Linear.grad) =
-      { Linear.grad_input = clip_grad g.grad_input
-      ; grad_weight = clip_grad g.grad_weight
-      ; grad_bias = clip_grad g.grad_bias
+      { Linear.grad_input = Functions.clip_by_norm g.grad_input threshold
+      ; grad_weight = Functions.clip_by_norm g.grad_weight threshold
+      ; grad_bias = Functions.clip_by_norm g.grad_bias threshold
       }
     in
     let grad =

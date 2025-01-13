@@ -56,7 +56,7 @@ let softmax_ce_loss_grad y_true y_pred =
   assert (List.length y_pred = List.length y_true);
   let rec loop y_true y_pred grad_output =
     match y_true with
-    | [] -> grad_output
+    | [] -> List.rev grad_output
     | y_true_hd :: _ ->
       let y_pred_hd = List.hd y_pred in
       let y_pred_hd_softmax = softmax y_pred_hd in
@@ -64,6 +64,22 @@ let softmax_ce_loss_grad y_true y_pred =
       loop (List.tl y_true) (List.tl y_pred) (grad :: grad_output)
   in
   loop y_true y_pred []
+;;
+
+let clip_by_value g threshold =
+  N.map
+    (fun x ->
+      if x > threshold
+      then threshold
+      else if x < -1. *. threshold
+      then -1. *. threshold
+      else x)
+    g
+;;
+
+let clip_by_norm g threshold =
+  let norm = N.l2norm' g in
+  if norm > threshold then N.mul_scalar g (threshold /. norm) else g
 ;;
 
 let tanh_grad x = N.(scalar_sub 1. (mul x x))

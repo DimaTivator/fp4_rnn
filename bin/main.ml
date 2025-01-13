@@ -36,8 +36,8 @@ let train ~model ~batches ~epochs ~lr =
   loop model 0 lr
 ;;
 
-let words = List.map Case_Map.lowercase (Utils.read_words_from_file "data/test.txt")
-let letters = List.flatten (List.map Utils.split_into_letters words);;
+let text = Case_Map.lowercase (Utils.read_string_from_file "data/test.txt")
+let letters = Utils.split_into_letters text;;
 
 Printf.printf "Number of letters: %d\n" (List.length letters)
 
@@ -55,15 +55,15 @@ let tokens =
 ;;
 
 let float_tokens = List.map Float.of_int tokens
-let batch_size = 256
-let seq_length = 80
+let batch_size = 32
+let seq_length = 105
 let batches = Utils.get_batches float_tokens batch_size seq_length vocab_size
 let cfg : Nn.RNN.config = { vocab_size; hidden_size = 256 }
 let model = Nn.RNN.create cfg;;
 
 prerr_endline "\n-----------------Start training-----------------\n"
 
-let model = train ~model ~batches ~epochs:15 ~lr:0.01;;
+let model = train ~model ~batches ~epochs:10 ~lr:0.01;;
 
 prerr_endline "\n-----------------End training-------------------\n"
 

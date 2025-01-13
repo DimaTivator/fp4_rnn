@@ -1,28 +1,28 @@
+[@@@ocaml.warning "-27-33-39"]
+
 open Nnlib
 open Camomile
 module Case_Map = Camomile.CaseMap.Make (Camomile.UTF8)
 module N = Owl_base_dense_ndarray.D
 
 let print_list lst = List.iter (fun x -> N.print x) lst
-let split_into_words str = Str.split (Str.regexp "[\n]+") str
 
 let split_into_letters word =
   List.init (UTF8.length word) (fun i -> UChar.code (UTF8.get word i))
 ;;
 
-let read_words_from_file filename =
+let read_string_from_file filename =
   let ic = open_in filename in
   let rec read_lines acc =
     try
       let line = input_line ic in
-      let words = split_into_words line in
-      read_lines (words @ acc)
+      read_lines (acc ^ line ^ "\n")
     with
     | End_of_file ->
       close_in ic;
-      List.rev acc
+      acc
   in
-  read_lines []
+  read_lines ""
 ;;
 
 let text_to_tokens text letter_to_token =
