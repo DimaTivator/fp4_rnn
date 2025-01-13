@@ -28,7 +28,7 @@ jobs:
           ocaml-compiler: 4
 
       # - run: opam install . --deps-only --with-test
-      - run: opam install base stdio alcotest qcheck-alcotest dune owl-base camomile str -y
+      - run: opam install base stdio alcotest qcheck-alcotest dune owl-base camomile -y
 
       - run: opam exec -- dune build
       - run: opam exec -- dune runtest --verbose
