@@ -184,9 +184,7 @@ module RNN = struct
             (N.dot grad_output_t (N.transpose rnn.hidden_to_output.weight))
         in
         let grad_tanh = Functions.tanh_grad hidden_state_t in
-        let grad_hidden_state_raw =
-          N.mul grad_hidden_state grad_tanh
-        in
+        let grad_hidden_state_raw = N.mul grad_hidden_state grad_tanh in
         let grad_input_to_hidden =
           Linear.backward rnn.input_to_hidden input_t grad_hidden_state_raw
         in

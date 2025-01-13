@@ -4,7 +4,6 @@ module Case_Map = Camomile.CaseMap.Make (Camomile.UTF8)
 module N = Owl_base_dense_ndarray.D
 
 let print_list lst = List.iter (fun x -> N.print x) lst
-(* let split_into_words str = Str.split (Str.regexp "[\t\n\r,.;:!?()]+") str *)
 let split_into_words str = Str.split (Str.regexp "[\n]+") str
 
 let split_into_letters word =
@@ -24,6 +23,16 @@ let read_words_from_file filename =
       List.rev acc
   in
   read_lines []
+;;
+
+let text_to_tokens text letter_to_token =
+  text
+  |> Case_Map.lowercase
+  |> split_into_letters
+  |> List.map (fun letter ->
+    try List.assoc letter letter_to_token with
+    | Not_found -> 0)
+  |> List.map Float.of_int
 ;;
 
 let rec take n lst =

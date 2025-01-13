@@ -71,12 +71,12 @@ let tanh_grad x = N.(scalar_sub 1. (mul x x))
 let one_hot_encode x num_classes =
   let one_hot_matrix = N.zeros [| (N.shape x).(0); num_classes |] in
   let rec loop matrix i =
-    if i < (N.shape x).(0)
-    then (
+    if i = (N.shape x).(0)
+    then matrix
+    else (
       let idx = int_of_float (N.get x [| i; 0 |]) in
       N.set matrix [| i; idx |] 1.;
       loop matrix (i + 1))
-    else matrix
   in
   loop one_hot_matrix 0
 ;;
