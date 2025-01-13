@@ -17,9 +17,11 @@
 [Source of the image](https://www.analyticsvidhya.com/blog/2022/03/a-brief-overview-of-recurrent-neural-networks-rnn/)
 
 $h_{t+1} = tanh(W_{xh} \cdot x_t + W_{hh} \cdot h_t)$
+
 $y_{t+1} = W_{hy} \cdot h_{t+1}$
 
 $x_t$ - Current token
+
 $h_t$ - Hidden state
 
 ## Backpropagation 
